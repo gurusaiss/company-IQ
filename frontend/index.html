@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CompanyIQ — AI Career Intelligence</title>
+  <meta name="description" content="AI-powered company intelligence reports, cover letters, JD fit analysis, and interview prep for job seekers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" /></noscript>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <!-- ═══════ AUTH OVERLAY (login / signup) ═══════ -->
+  <div class="overlay hidden" id="authOverlay">
+    <div class="auth-card">
+      <div class="logo-badge">IQ</div>
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authSubtitle">Sign in to continue to CompanyIQ</p>
+
+      <form id="authForm">
+        <div class="form-field auth-name-field hidden" id="authNameField">
+          <input type="text" id="authName" class="text-input" placeholder="Your name" autocomplete="name" />
+        </div>
+        <div class="form-field">
+          <input type="email" id="authEmail" class="text-input" placeholder="Email" autocomplete="email" required />
+        </div>
+        <div class="form-field">
+          <input type="password" id="authPassword" class="text-input" placeholder="Password (min 6 chars)" autocomplete="current-password" required />
+        </div>
+        <div class="form-field auth-ref-field hidden" id="authRefField">
+          <input type="text" id="authRef" class="text-input" placeholder="Referral code (optional)" />
+        </div>
+        <button type="submit" class="btn-generate" id="authSubmitBtn">Sign In</button>
+      </form>
+
+      <p class="auth-toggle">
+        <span id="authToggleText">New here?</span>
+        <button class="auth-toggle-btn" id="authToggleBtn">Create an account</button>
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════ UPGRADE MODAL ═══════ -->
+  <div class="overlay hidden" id="upgradeOverlay">
+    <div class="upgrade-card">
+      <button class="upgrade-close" id="upgradeClose">✕</button>
+      <div class="upgrade-icon">⭐</div>
+      <h2>Upgrade to Pro</h2>
+      <p class="upgrade-msg" id="upgradeMsg">You've hit your free monthly limit. Upgrade for unlimited access.</p>
+
+      <div class="upgrade-plans">
+        <div class="upgrade-plan">
+          <div class="up-tier">Pro</div>
+          <div class="up-price">₹199<sub>/mo</sub></div>
+          <ul><li>Unlimited everything</li><li>Shareable reports</li><li>Priority processing</li></ul>
+        </div>
+        <div class="upgrade-plan featured">
+          <div class="up-badge">Best Value</div>
+          <div class="up-tier">Lifetime</div>
+          <div class="up-price">₹499</div>
+          <ul><li>Everything in Pro</li><li>One-time payment</li><li>All future features</li></ul>
+        </div>
+      </div>
+
+      <div class="upgrade-pay">
+        <p class="pay-step"><strong>Step 1.</strong> Pay via UPI to <strong id="upiId">your-upi@bank</strong> (GPay / PhonePe / Paytm)</p>
+        <p class="pay-step"><strong>Step 2.</strong> Send payment screenshot on WhatsApp — you'll get a redemption code.</p>
+        <p class="pay-step"><strong>Step 3.</strong> Enter your code below to unlock instantly:</p>
+        <div class="redeem-row">
+          <input type="text" id="upgradeRedeemInput" class="text-input" placeholder="IQ-XXXXX-XXXXX" />
+          <button class="btn-dl" id="upgradeRedeemBtn">Redeem</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ HEADER ═══════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/landing.html" class="logo" style="text-decoration:none">
+        <div class="logo-badge">IQ</div>
+        <span class="logo-text">Company<strong>IQ</strong></span>
+      </a>
+      <p class="header-tag">AI-Powered Career Intelligence</p>
+      <div class="header-actions">
+        <button class="btn-history" id="historyToggle" title="View past reports">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          History
+        </button>
+        <button class="btn-account" id="accountToggle" title="Account">
+          <span class="account-avatar" id="accountAvatar">·</span>
+          <span class="account-plan-pill" id="accountPlanPill">Free</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════ TOOL TABS ═══════ -->
+  <nav class="tool-tabs-nav">
+    <div class="tool-tabs-inner">
+      <button class="tool-tab active" data-tab="report">🔍 Report</button>
+      <button class="tool-tab" data-tab="coverletter">✉️ Cover Letter</button>
+      <button class="tool-tab" data-tab="jdanalyzer">📋 JD Fit</button>
+      <button class="tool-tab" data-tab="compare">⚖️ Compare</button>
+      <button class="tool-tab" data-tab="salary">💰 Salary</button>
+      <button class="tool-tab" data-tab="tracker">🗂️ Tracker</button>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ═══ TAB: REPORT ═══ -->
+    <div class="tab-pane" id="tabReport">
+      <section id="sectionForm" class="section">
+        <div class="card form-card">
+          <div class="card-eyebrow">INTELLIGENCE REPORT GENERATOR</div>
+          <h1 class="card-title">Research Any Company.<br>Find Your Perfect Fit.</h1>
+          <p class="card-sub">Enter a company name and upload your resume. Our AI searches the web in real-time to generate a personalised 13-section intelligence report.</p>
+          <form id="analyzeForm" novalidate>
+            <div class="form-field">
+              <label class="field-label" for="companyName">Company Name</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🏢</span>
+                <input type="text" id="companyName" class="text-input" placeholder="e.g. Google, Tesla, Stripe..." required autocomplete="off" />
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="field-label">Your Resume (PDF)</label>
+              <div class="upload-zone" id="uploadZone">
+                <input type="file" id="resumeFile" accept=".pdf" required hidden />
+                <div class="upload-idle" id="uploadIdle">
+                  <div class="upload-svg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+                  <div class="upload-label"><strong>Click to upload</strong> or drag & drop</div>
+                  <div class="upload-hint">PDF only · Max 10 MB</div>
+                </div>
+                <div class="upload-done hidden" id="uploadDone">
+                  <span class="file-icon">📄</span><span class="file-name" id="fileName"></span>
+                  <button type="button" class="file-rm" id="fileRm" title="Remove">✕</button>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate" id="generateBtn"><span>⚡</span> Generate Intelligence Report</button>
+          </form>
+          <div class="chip-row">
+            <span class="chip">🔍 Real-time web research</span>
+            <span class="chip">📊 13-section analysis</span>
+            <span class="chip">🎯 Fit analysis</span>
+            <span class="chip">💬 Interview questions</span>
+            <span class="chip">⚠️ Red flags</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="sectionProgress" class="section hidden">
+        <div class="card progress-card">
+          <div class="progress-header">
+            <div class="spinner-ring"></div>
+            <div><h2 id="progressTitle">Generating Your Report...</h2><p class="progress-company" id="progressCompany"></p></div>
+          </div>
+          <div class="steps">
+            <div class="step-item" id="stepParsing"><div class="step-dot"></div><span>Parsing resume</span><span class="step-tick"></span></div>
+            <div class="step-item" id="stepResearching"><div class="step-dot"></div><span>AI web research</span><span class="step-tick"></span></div>
+            <div class="step-item" id="stepAnalyzing"><div class="step-dot"></div><span>Candidate fit analysis</span><span class="step-tick"></span></div>
+            <div class="step-item" id="stepGenerating"><div class="step-dot"></div><span>Generating PDF + MD + Prompt</span><span class="step-tick"></span></div>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+          <div class="prog-meta"><span id="progMsg">Initializing...</span><span class="prog-pct" id="progPct">0%</span></div>
+          <p class="prog-note">AI web search typically takes 30–90 seconds. Grab a coffee ☕</p>
+        </div>
+      </section>
+
+      <section id="sectionResults" class="section hidden">
+        <div class="card results-card">
+          <div class="results-header">
+            <div class="success-ring">✓</div>
+            <div><h2>Your Report is Ready!</h2><p class="results-co" id="resultsCo"></p></div>
+          </div>
+          <div class="dl-grid">
+            <div class="dl-card"><div class="dl-icon">📊</div><h3>PDF Report</h3><p>13-section formatted report with interview prep, culture, red flags & fit analysis</p><button class="btn-dl" id="dlPdf">⬇ Download PDF</button></div>
+            <div class="dl-card"><div class="dl-icon">📝</div><h3>Markdown</h3><p>Clean .md — paste into Notion, Obsidian, or GitHub</p><button class="btn-dl" id="dlMd">⬇ Download MD</button></div>
+            <div class="dl-card"><div class="dl-icon">🎯</div><h3>PPT Prompt</h3><p>22-slide generation prompt for ChatGPT, Gemini, or Gamma</p><div class="dl-actions"><button class="btn-dl" id="dlPpt">⬇</button><button class="btn-copy" id="copyPpt">Copy</button></div></div>
+          </div>
+          <div class="flashcard-cta">
+            <div class="fc-cta-icon">📚</div>
+            <div><h4>Study Interview Flashcards</h4><p>Flip through real interview questions asked at this company.</p></div>
+            <button class="btn-flashcard-open" id="flashcardBtn">Study Now →</button>
+          </div>
+          <div class="share-row">
+            <button class="btn-share" id="shareBtn">🔗 Create shareable link <span class="pro-tag">PRO</span></button>
+            <div class="share-result hidden" id="shareResult">
+              <input type="text" id="shareUrl" class="text-input" readonly />
+              <button class="btn-copy" id="shareCopyBtn">Copy</button>
+            </div>
+          </div>
+          <button class="btn-reset" id="resetBtn">← Generate Another Report</button>
+        </div>
+      </section>
+
+      <section id="sectionError" class="section hidden">
+        <div class="card error-card">
+          <div class="err-badge">⚠</div><h2>Something Went Wrong</h2>
+          <p class="err-msg" id="errMsg">An unexpected error occurred.</p>
+          <button class="btn-reset" id="errResetBtn">← Try Again</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ TAB: COVER LETTER ═══ -->
+    <div class="tab-pane hidden" id="tabCoverletter">
+      <section id="sectionCL" class="section">
+        <div class="card form-card">
+          <div class="card-eyebrow">COVER LETTER GENERATOR</div>
+          <h1 class="card-title">Personalised Cover Letters.<br>In Seconds.</h1>
+          <p class="card-sub">Enter the company, role, and optionally the job description. Upload your resume. Get a tailored, human-sounding cover letter.</p>
+          <form id="clForm" novalidate>
+            <div class="form-row">
+              <div class="form-field"><label class="field-label" for="clCompany">Company</label><div class="input-wrapper"><span class="input-icon">🏢</span><input type="text" id="clCompany" class="text-input" placeholder="e.g. Razorpay" required autocomplete="off" /></div></div>
+              <div class="form-field"><label class="field-label" for="clRole">Role</label><div class="input-wrapper"><span class="input-icon">💼</span><input type="text" id="clRole" class="text-input" placeholder="e.g. Software Engineer" required autocomplete="off" /></div></div>
+            </div>
+            <div class="form-field"><label class="field-label" for="clJd">Job Description <span class="field-optional">(optional, recommended)</span></label><textarea id="clJd" class="text-area" placeholder="Paste the job description for a more tailored letter..." rows="4"></textarea></div>
+            <div class="form-field">
+              <label class="field-label">Your Resume (PDF)</label>
+              <div class="upload-zone" id="clUploadZone">
+                <input type="file" id="clResumeFile" accept=".pdf" required hidden />
+                <div class="upload-idle" id="clUploadIdle"><div class="upload-svg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div><div class="upload-label"><strong>Click to upload</strong> or drag & drop</div><div class="upload-hint">PDF only · Max 10 MB</div></div>
+                <div class="upload-done hidden" id="clUploadDone"><span class="file-icon">📄</span><span class="file-name" id="clFileName"></span><button type="button" class="file-rm" id="clFileRm">✕</button></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate" id="clGenerateBtn"><span>✉️</span> Generate Cover Letter</button>
+          </form>
+        </div>
+      </section>
+      <section id="sectionCLResult" class="section hidden">
+        <div class="card results-card">
+          <div class="results-header"><div class="success-ring">✓</div><div><h2>Cover Letter Ready!</h2><p class="results-co" id="clResultMeta"></p></div></div>
+          <div class="cl-output-box">
+            <div class="cl-output-header"><span class="cl-output-label">Your Cover Letter</span><div class="cl-output-actions"><button class="btn-copy" id="clCopyBtn">Copy</button><button class="btn-dl" id="clDownloadBtn">⬇ Download</button></div></div>
+            <pre class="cl-output" id="clOutput"></pre>
+          </div>
+          <button class="btn-reset" id="clResetBtn">← Write Another</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ TAB: JD ANALYSER ═══ -->
+    <div class="tab-pane hidden" id="tabJdanalyzer">
+      <section id="sectionJD" class="section">
+        <div class="card form-card">
+          <div class="card-eyebrow">JD FIT ANALYSER</div>
+          <h1 class="card-title">Know Your Fit.<br>Before You Apply.</h1>
+          <p class="card-sub">Paste any job description. Upload your resume. Get a fit score, ATS keyword analysis, skill gaps, and a tailored pitch.</p>
+          <form id="jdForm" novalidate>
+            <div class="form-field"><label class="field-label" for="jdCompany">Company <span class="field-optional">(optional)</span></label><div class="input-wrapper"><span class="input-icon">🏢</span><input type="text" id="jdCompany" class="text-input" placeholder="e.g. Swiggy" autocomplete="off" /></div></div>
+            <div class="form-field"><label class="field-label" for="jdText">Job Description <span class="field-required">*</span></label><textarea id="jdText" class="text-area" placeholder="Paste the full job description here..." rows="7" required></textarea></div>
+            <div class="form-field">
+              <label class="field-label">Your Resume (PDF)</label>
+              <div class="upload-zone" id="jdUploadZone">
+                <input type="file" id="jdResumeFile" accept=".pdf" required hidden />
+                <div class="upload-idle" id="jdUploadIdle"><div class="upload-svg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div><div class="upload-label"><strong>Click to upload</strong> or drag & drop</div><div class="upload-hint">PDF only · Max 10 MB</div></div>
+                <div class="upload-done hidden" id="jdUploadDone"><span class="file-icon">📄</span><span class="file-name" id="jdFileName"></span><button type="button" class="file-rm" id="jdFileRm">✕</button></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate" id="jdAnalyzeBtn"><span>📋</span> Analyse My Fit</button>
+          </form>
+        </div>
+      </section>
+      <section id="sectionJDResult" class="section hidden">
+        <div class="card jd-results-card">
+          <div class="jd-score-header">
+            <div class="score-ring-wrap">
+              <svg class="score-ring" viewBox="0 0 100 100"><circle class="ring-track" cx="50" cy="50" r="40"/><circle class="ring-fill" id="jdRingFill" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"/></svg>
+              <div class="score-ring-inner"><span class="score-num" id="jdScore">—</span><span class="score-label">FIT</span></div>
+            </div>
+            <div class="jd-score-meta">
+              <div class="jd-verdict" id="jdVerdict">Analysing...</div>
+              <div class="jd-company-role" id="jdCompanyDisplay"></div>
+              <p class="jd-summary" id="jdSummary"></p>
+              <div class="ats-row"><span class="ats-label">ATS Score</span><div class="ats-track"><div class="ats-fill" id="jdAtsFill"></div></div><span class="ats-pct" id="jdAtsPct">—</span></div>
+            </div>
+          </div>
+          <div class="jd-skills-grid">
+            <div class="jd-skill-col"><div class="jd-col-header matched">✅ Matched Skills</div><div class="skill-pills" id="jdMatchedSkills"></div></div>
+            <div class="jd-skill-col"><div class="jd-col-header missing">🔴 Missing Skills</div><div class="skill-pills" id="jdMissingSkills"></div></div>
+          </div>
+          <div class="jd-section"><div class="jd-section-title">🏆 Your Top Selling Points</div><ul class="jd-bullet-list" id="jdSelling"></ul></div>
+          <div class="jd-section"><div class="jd-section-title">💬 Tailored Pitch <span class="jd-section-sub">Use in cold emails or intros</span></div><div class="pitch-box"><p id="jdPitch"></p><button class="btn-copy pitch-copy" id="jdPitchCopy">Copy Pitch</button></div></div>
+          <div class="jd-section"><div class="jd-section-title">🤖 Keywords to Add <span class="jd-section-sub">Boost ATS ranking</span></div><div class="skill-pills" id="jdKeywords"></div></div>
+          <div class="jd-section"><div class="jd-section-title">📝 Resume Tailoring Advice</div><p class="jd-advice" id="jdAdvice"></p></div>
+          <div class="jd-section"><div class="jd-section-title">🎯 Expect in the Interview</div><ul class="jd-bullet-list" id="jdInterviewFocus"></ul></div>
+          <button class="btn-reset" id="jdResetBtn">← Analyse Another JD</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ TAB: COMPARE ═══ -->
+    <div class="tab-pane hidden" id="tabCompare">
+      <section id="sectionCompare" class="section">
+        <div class="card form-card">
+          <div class="card-eyebrow">COMPANY COMPARISON</div>
+          <h1 class="card-title">Two Offers?<br>Compare Head-to-Head.</h1>
+          <p class="card-sub">Enter two companies and upload your resume. Get a side-by-side fit comparison with a clear verdict on which is better for you.</p>
+          <form id="cmpForm" novalidate>
+            <div class="form-row">
+              <div class="form-field"><label class="field-label" for="cmpA">Company A</label><div class="input-wrapper"><span class="input-icon">🅰️</span><input type="text" id="cmpA" class="text-input" placeholder="e.g. Google" required autocomplete="off" /></div></div>
+              <div class="form-field"><label class="field-label" for="cmpB">Company B</label><div class="input-wrapper"><span class="input-icon">🅱️</span><input type="text" id="cmpB" class="text-input" placeholder="e.g. Meta" required autocomplete="off" /></div></div>
+            </div>
+            <div class="form-field">
+              <label class="field-label">Your Resume (PDF)</label>
+              <div class="upload-zone" id="cmpUploadZone">
+                <input type="file" id="cmpResumeFile" accept=".pdf" required hidden />
+                <div class="upload-idle" id="cmpUploadIdle"><div class="upload-svg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div><div class="upload-label"><strong>Click to upload</strong> or drag & drop</div><div class="upload-hint">PDF only · Max 10 MB</div></div>
+                <div class="upload-done hidden" id="cmpUploadDone"><span class="file-icon">📄</span><span class="file-name" id="cmpFileName"></span><button type="button" class="file-rm" id="cmpFileRm">✕</button></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate" id="cmpBtn"><span>⚖️</span> Compare Companies</button>
+          </form>
+        </div>
+      </section>
+      <section id="sectionCmpResult" class="section hidden">
+        <div class="card results-card">
+          <div class="results-header"><div class="success-ring">⚖️</div><div><h2>Comparison Ready</h2><p class="results-co" id="cmpWinner"></p></div></div>
+          <div class="cmp-grid" id="cmpGrid"></div>
+          <div class="jd-section"><div class="jd-section-title">🏁 Verdict</div><p class="jd-advice" id="cmpVerdict"></p></div>
+          <div class="jd-section"><div class="jd-section-title">⚖️ Key Decision Factors</div><ul class="jd-bullet-list" id="cmpFactors"></ul></div>
+          <button class="btn-reset" id="cmpResetBtn">← Compare Others</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ TAB: SALARY ═══ -->
+    <div class="tab-pane hidden" id="tabSalary">
+      <section id="sectionSalary" class="section">
+        <div class="card form-card">
+          <div class="card-eyebrow">SALARY INTELLIGENCE</div>
+          <h1 class="card-title">Know Your Worth.<br>Negotiate Better.</h1>
+          <p class="card-sub">Get a realistic compensation estimate for a role at any company, plus negotiation tips tailored to your experience.</p>
+          <form id="salForm" novalidate>
+            <div class="form-row">
+              <div class="form-field"><label class="field-label" for="salCompany">Company</label><div class="input-wrapper"><span class="input-icon">🏢</span><input type="text" id="salCompany" class="text-input" placeholder="e.g. Amazon" required autocomplete="off" /></div></div>
+              <div class="form-field"><label class="field-label" for="salRole">Role</label><div class="input-wrapper"><span class="input-icon">💼</span><input type="text" id="salRole" class="text-input" placeholder="e.g. SDE-1" required autocomplete="off" /></div></div>
+            </div>
+            <div class="form-field"><label class="field-label" for="salLocation">Location <span class="field-optional">(optional)</span></label><div class="input-wrapper"><span class="input-icon">📍</span><input type="text" id="salLocation" class="text-input" placeholder="e.g. Bangalore, Remote" autocomplete="off" /></div></div>
+            <div class="form-field">
+              <label class="field-label">Your Resume (PDF)</label>
+              <div class="upload-zone" id="salUploadZone">
+                <input type="file" id="salResumeFile" accept=".pdf" required hidden />
+                <div class="upload-idle" id="salUploadIdle"><div class="upload-svg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div><div class="upload-label"><strong>Click to upload</strong> or drag & drop</div><div class="upload-hint">PDF only · Max 10 MB</div></div>
+                <div class="upload-done hidden" id="salUploadDone"><span class="file-icon">📄</span><span class="file-name" id="salFileName"></span><button type="button" class="file-rm" id="salFileRm">✕</button></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-generate" id="salBtn"><span>💰</span> Estimate Salary</button>
+          </form>
+        </div>
+      </section>
+      <section id="sectionSalResult" class="section hidden">
+        <div class="card results-card">
+          <div class="results-header"><div class="success-ring">💰</div><div><h2 id="salTitle">Salary Estimate</h2><p class="results-co" id="salMeta"></p></div></div>
+          <div class="sal-bands" id="salBands"></div>
+          <div class="jd-section"><div class="jd-section-title">📊 Breakdown</div><p class="jd-advice" id="salBreakdown"></p></div>
+          <div class="jd-section"><div class="jd-section-title">🤝 Negotiation Tips</div><ul class="jd-bullet-list" id="salTips"></ul></div>
+          <p class="sal-note" id="salNote"></p>
+          <button class="btn-reset" id="salResetBtn">← Estimate Another</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ TAB: TRACKER ═══ -->
+    <div class="tab-pane hidden" id="tabTracker">
+      <section class="section section-wide">
+        <div class="card">
+          <div class="tracker-header">
+            <div><div class="card-eyebrow">APPLICATION TRACKER</div><h1 class="card-title" style="font-size:24px">Your Job Pipeline</h1></div>
+            <button class="btn-dl" id="trackerAddBtn">+ Add Application</button>
+          </div>
+          <form id="trackerForm" class="tracker-add-form hidden">
+            <div class="form-row">
+              <input type="text" id="trCompany" class="text-input" placeholder="Company *" required />
+              <input type="text" id="trRole" class="text-input" placeholder="Role" />
+            </div>
+            <div class="form-row">
+              <select id="trStatus" class="text-input">
+                <option value="saved">Saved</option><option value="applied">Applied</option>
+                <option value="interviewing">Interviewing</option><option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <input type="text" id="trNotes" class="text-input" placeholder="Notes" />
+            </div>
+            <div class="tracker-form-actions">
+              <button type="submit" class="btn-dl">Save</button>
+              <button type="button" class="btn-reset" id="trCancelBtn" style="margin:0">Cancel</button>
+            </div>
+          </form>
+          <div class="tracker-board" id="trackerBoard"><div class="history-loading">Loading...</div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═══ HISTORY PANEL ═══ -->
+    <aside class="history-panel hidden" id="historyPanel">
+      <div class="history-header"><h3>Past Reports</h3><button class="history-close" id="historyClose">✕</button></div>
+      <div class="history-list" id="historyList"><div class="history-loading">Loading...</div></div>
+    </aside>
+
+    <!-- ═══ ACCOUNT PANEL ═══ -->
+    <aside class="account-panel hidden" id="accountPanel">
+      <div class="history-header"><h3>My Account</h3><button class="history-close" id="accountClose">✕</button></div>
+      <div class="account-body">
+        <div class="account-email" id="accountEmail">—</div>
+        <div class="account-plan-row">
+          <span>Current plan</span>
+          <span class="plan-badge" id="accountPlanBadge">Free</span>
+        </div>
+        <div class="account-usage" id="accountUsage"></div>
+        <button class="btn-generate account-upgrade-btn hidden" id="accountUpgradeBtn"><span>⭐</span> Upgrade to Pro</button>
+
+        <div class="account-divider"></div>
+        <div class="account-section-label">Have a code?</div>
+        <div class="redeem-row">
+          <input type="text" id="accountRedeemInput" class="text-input" placeholder="IQ-XXXXX-XXXXX" />
+          <button class="btn-dl" id="accountRedeemBtn">Redeem</button>
+        </div>
+
+        <div class="account-divider"></div>
+        <div class="account-section-label">Refer a friend</div>
+        <p class="account-ref-hint">Share your code — when friends sign up, we both benefit.</p>
+        <div class="redeem-row">
+          <input type="text" id="accountRefCode" class="text-input" readonly />
+          <button class="btn-copy" id="accountRefCopy">Copy</button>
+        </div>
+
+        <div class="account-divider"></div>
+        <button class="btn-reset account-logout" id="logoutBtn">Sign Out</button>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ═══ FLASHCARD MODAL ═══ -->
+  <div class="fc-modal hidden" id="flashcardModal">
+    <div class="fc-backdrop" id="fcBackdrop"></div>
+    <div class="fc-container">
+      <div class="fc-header">
+        <div><span class="fc-company" id="fcCompany"></span><span class="fc-subtitle">Interview Flashcards</span></div>
+        <div class="fc-header-right"><span class="fc-progress" id="fcProgress">1 / 10</span><button class="fc-close" id="fcClose">✕</button></div>
+      </div>
+      <div class="fc-card-wrap">
+        <div class="fc-card" id="fcCard" onclick="flipCard()">
+          <div class="fc-inner" id="fcInner">
+            <div class="fc-face fc-front"><div class="fc-category-badge" id="fcCategory">General</div><div class="fc-question" id="fcQuestion">Loading...</div><div class="fc-tap-hint">Tap to reveal tip →</div></div>
+            <div class="fc-face fc-back"><div class="fc-tip-label">💡 Interview Tip</div><div class="fc-tip" id="fcTip"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="fc-controls">
+        <button class="fc-nav-btn" id="fcPrev">← Prev</button>
+        <button class="fc-flip-btn" id="fcFlipBtn" onclick="flipCard()">Flip Card</button>
+        <button class="fc-nav-btn" id="fcNext">Next →</button>
+      </div>
+      <div class="fc-footer"><button class="fc-shuffle-btn" id="fcShuffle">🔀 Shuffle</button></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>Powered by <strong>GROQ AI</strong> &nbsp;·&nbsp; CompanyIQ v3.0 &nbsp;·&nbsp; <a href="/landing.html" style="color:var(--gold);text-decoration:none">Pricing →</a></p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

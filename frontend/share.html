@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Report — CompanyIQ</title>
+  <meta property="og:title" content="Company Intelligence Report — CompanyIQ" />
+  <meta property="og:description" content="An AI-generated company intelligence report. Create your own free on CompanyIQ." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .share-wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; position: relative; z-index: 5; }
+    .share-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.25);
+      border-radius: var(--r-md); padding: 14px 20px; margin-bottom: 28px;
+    }
+    .share-banner p { font-size: 13px; color: var(--gray-200); }
+    .share-banner strong { color: var(--gold); }
+    .rep-h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .rep-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 28px; }
+    .rep-section { background: rgba(13,33,55,0.7); border: 1px solid rgba(201,168,76,0.14); border-radius: var(--r-md); padding: 22px 24px; margin-bottom: 16px; }
+    .rep-section h2 { font-size: 16px; font-weight: 700; color: var(--gold); margin-bottom: 12px; }
+    .rep-section p, .rep-section li { font-size: 14px; color: #cdd7e3; line-height: 1.7; }
+    .rep-section ul { list-style: none; }
+    .rep-section li { padding-left: 18px; position: relative; margin-bottom: 6px; }
+    .rep-section li::before { content: '→'; position: absolute; left: 0; color: var(--gold); }
+    .share-loading, .share-error { text-align: center; padding: 80px 20px; color: var(--gray-400); }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/landing.html" class="logo" style="text-decoration:none">
+        <div class="logo-badge">IQ</div><span class="logo-text">Company<strong>IQ</strong></span>
+      </a>
+      <p class="header-tag">Shared Intelligence Report</p>
+      <div class="header-actions"><a href="/" class="btn-history">Create your own →</a></div>
+    </div>
+  </header>
+
+  <main class="share-wrap">
+    <div class="share-banner">
+      <p>📊 This is a shared report. <strong>Make your own free</strong> in 60 seconds.</p>
+      <a href="/" class="btn-dl">Try CompanyIQ Free</a>
+    </div>
+    <div id="shareContent"><div class="share-loading">Loading report...</div></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Powered by <strong>GROQ AI</strong> · CompanyIQ · <a href="/landing.html" style="color:var(--gold);text-decoration:none">Learn more →</a></p>
+  </footer>
+
+  <script>
+    function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function sectionList(title, items){
+      if(!items || !items.length) return '';
+      return '<div class="rep-section"><h2>'+esc(title)+'</h2><ul>'+items.map(function(i){
+        if(typeof i==='string') return '<li>'+esc(i)+'</li>';
+        if(i && i.question) return '<li><strong>'+esc(i.question)+'</strong></li>';
+        if(i && i.name) return '<li><strong>'+esc(i.name)+'</strong>'+(i.role?' — '+esc(i.role):'')+'</li>';
+        return '<li>'+esc(JSON.stringify(i))+'</li>';
+      }).join('')+'</ul></div>';
+    }
+    function sectionText(title, text){
+      if(!text) return '';
+      return '<div class="rep-section"><h2>'+esc(title)+'</h2><p>'+esc(text)+'</p></div>';
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    var token = params.get('t');
+    var box = document.getElementById('shareContent');
+
+    if(!token){ box.innerHTML='<div class="share-error">No report token provided.</div>'; }
+    else {
+      fetch('/api/share/'+encodeURIComponent(token))
+        .then(function(res){ if(!res.ok) throw new Error('not found'); return res.json(); })
+        .then(function(data){
+          var r = data.report || {};
+          var ov = r.company_overview || {};
+          var html = '<div class="rep-h1">'+esc(data.company_name||'Company')+'</div>'
+            + '<div class="rep-sub">AI-generated intelligence report · CompanyIQ</div>';
+          html += sectionText('Overview', ov.description || ov.summary || '');
+          html += sectionList('Leadership', r.leadership);
+          html += sectionList('Recent Challenges', r.challenges);
+          html += sectionList('Current Projects', r.current_projects);
+          html += sectionList('Competition', r.competition);
+          html += sectionList('Red Flags', r.red_flags);
+          html += sectionList('Interview Questions', r.interview_questions);
+          if(html.indexOf('rep-section')===-1){ html += '<div class="rep-section"><p>This report has limited public detail. Create your own full report on CompanyIQ.</p></div>'; }
+          box.innerHTML = html;
+        })
+        .catch(function(){ box.innerHTML='<div class="share-error">This shared report was not found or is no longer public.</div>'; });
+    }
+  </script>
+</body>
+</html>
