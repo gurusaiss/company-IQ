@@ -1,29 +1,5 @@
-import logging
-
-from groq import AsyncGroq, RateLimitError
-from tenacity import before_sleep_log, retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
-
-from ..config import settings
 from ..models.schemas import ResumeData
-
-logger = logging.getLogger(__name__)
-
-
-@retry(
-    stop=stop_after_attempt(2),
-    wait=wait_exponential(multiplier=1, min=2, max=6),
-    retry=retry_if_not_exception_type(RateLimitError),
-    before_sleep=before_sleep_log(logger, logging.WARNING),
-    reraise=True,
-)
-async def _call_groq(client: AsyncGroq, messages: list, max_tokens: int = 900) -> str:
-    resp = await client.chat.completions.create(
-        model=settings.GROQ_MODEL,
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=0.75,
-    )
-    return resp.choices[0].message.content
+from .groq_client import chat_completion
 
 
 async def generate_cover_letter(
@@ -33,8 +9,6 @@ async def generate_cover_letter(
     job_description: str = "",
     company_context: str = "",
 ) -> str:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
-
     tech_str = ", ".join(resume_data.technologies[:12]) if resume_data.technologies else "various technologies"
     skills_str = ", ".join(resume_data.skills[:10]) if resume_data.skills else ""
     edu_str = resume_data.education[0] if resume_data.education else ""
@@ -81,4 +55,4 @@ Output ONLY the cover letter. No preamble, no explanation.""",
         },
     ]
 
-    return await _call_groq(client, messages, max_tokens=900)
+    return await chat_completion(messages, max_tokens=900, temperature=0.75)

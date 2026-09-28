@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     MAX_RESUME_SIZE: int = 10 * 1024 * 1024
     GROQ_MODEL: str = "openai/gpt-oss-120b"
     GROQ_FALLBACK_MODEL: str = "openai/gpt-oss-20b"
+    GROQ_FALLBACK_MODEL_2: str = "llama-3.1-8b-instant"
     DATABASE_URL: str = ""
     RATE_LIMIT: str = "60/hour"
 

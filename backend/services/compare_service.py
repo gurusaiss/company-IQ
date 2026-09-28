@@ -1,33 +1,8 @@
 import json
-import logging
 import re
 
-from groq import AsyncGroq, RateLimitError
-from tenacity import before_sleep_log, retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
-
-from ..config import settings
 from ..models.schemas import ResumeData
-
-logger = logging.getLogger(__name__)
-
-
-@retry(
-    stop=stop_after_attempt(2),
-    wait=wait_exponential(multiplier=1, min=2, max=6),
-    retry=retry_if_not_exception_type(RateLimitError),
-    before_sleep=before_sleep_log(logger, logging.WARNING),
-    reraise=True,
-)
-async def _call(client: AsyncGroq, messages: list, max_tokens: int) -> str:
-    resp = await client.chat.completions.create(
-        model=settings.GROQ_MODEL,
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=0.3,
-        tools=[{"type": "browser_search"}],
-        tool_choice="auto",
-    )
-    return resp.choices[0].message.content
+from .groq_client import chat_completion
 
 
 def _parse_json(raw: str) -> dict:
@@ -48,7 +23,6 @@ def _parse_json(raw: str) -> dict:
 
 
 async def compare_companies(company_a: str, company_b: str, resume_data: ResumeData) -> dict:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     tech = ", ".join(resume_data.technologies[:12]) or "general skills"
 
     messages = [
@@ -86,7 +60,7 @@ Return ONLY this JSON:
   "decision_factors": ["<factor the candidate should weigh most>", ...]
 }}"""},
     ]
-    raw = await _call(client, messages, max_tokens=1800)
+    raw = await chat_completion(messages, max_tokens=1800, temperature=0.3, use_search=True)
     data = _parse_json(raw)
     if not data:
         data = {
@@ -100,7 +74,6 @@ Return ONLY this JSON:
 
 
 async def estimate_salary(company: str, role: str, location: str, resume_data: ResumeData) -> dict:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     loc = location.strip() or "India"
 
     messages = [
@@ -130,7 +103,7 @@ Return ONLY this JSON:
   "notes": "<1 sentence caveat about the estimate>"
 }}"""},
     ]
-    raw = await _call(client, messages, max_tokens=900)
+    raw = await chat_completion(messages, max_tokens=900, temperature=0.3, use_search=True)
     data = _parse_json(raw)
     if not data:
         data = {

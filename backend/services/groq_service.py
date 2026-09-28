@@ -2,14 +2,8 @@ import json
 import re
 from typing import Dict, Any
 
-from groq import AsyncGroq, RateLimitError
-from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential, before_sleep_log
-import logging
-
-from ..config import settings
 from ..models.schemas import ResumeData
-
-logger = logging.getLogger(__name__)
+from .groq_client import chat_completion
 
 SYSTEM_PROMPT = (
     "You are a professional business analyst, career coach, and company researcher. "
@@ -86,27 +80,7 @@ def _resume_summary(resume: ResumeData) -> str:
     return "\n".join(parts)
 
 
-@retry(
-    stop=stop_after_attempt(2),
-    wait=wait_exponential(multiplier=1, min=2, max=6),
-    retry=retry_if_not_exception_type(RateLimitError),
-    before_sleep=before_sleep_log(logger, logging.WARNING),
-    reraise=True,
-)
-async def _call_groq(client: AsyncGroq, model: str, messages: list, max_tokens: int) -> str:
-    response = await client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0.25,
-        max_tokens=max_tokens,
-        tools=[{"type": "browser_search"}],
-        tool_choice="auto",
-    )
-    return response.choices[0].message.content or ""
-
-
 async def research_and_analyze(company_name: str, resume: ResumeData) -> Dict[str, Any]:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     summary = _resume_summary(resume)
 
     user_message = f"""Research {company_name} thoroughly and analyze the candidate's resume. Return a complete JSON report.
@@ -133,14 +107,7 @@ Requirements:
         {"role": "user", "content": user_message},
     ]
 
-    content = ""
-    try:
-        content = await _call_groq(client, settings.GROQ_MODEL, messages, max_tokens=10000)
-    except Exception:
-        try:
-            content = await _call_groq(client, settings.GROQ_FALLBACK_MODEL, messages, max_tokens=8000)
-        except Exception as e:
-            raise ValueError(f"All GROQ models failed: {e}") from e
+    content = await chat_completion(messages, max_tokens=9000, temperature=0.25, use_search=True)
 
     return _parse(content, company_name)
 
