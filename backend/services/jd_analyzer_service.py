@@ -2,8 +2,8 @@ import json
 import logging
 import re
 
-from groq import AsyncGroq
-from tenacity import before_sleep_log, retry, stop_after_attempt, wait_exponential
+from groq import AsyncGroq, RateLimitError
+from tenacity import before_sleep_log, retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
 from ..config import settings
 from ..models.schemas import ResumeData
@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=2, min=3, max=20),
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=2, max=6),
+    retry=retry_if_not_exception_type(RateLimitError),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
@@ -32,7 +33,7 @@ async def analyze_jd(
     resume_data: ResumeData,
     company_name: str = "",
 ) -> dict:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
 
     company_str = company_name.strip() or "the company"
 

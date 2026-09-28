@@ -2,8 +2,8 @@ import json
 import re
 from typing import Dict, Any
 
-from groq import AsyncGroq
-from tenacity import retry, stop_after_attempt, wait_exponential, before_sleep_log
+from groq import AsyncGroq, RateLimitError
+from tenacity import retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential, before_sleep_log
 import logging
 
 from ..config import settings
@@ -89,6 +89,7 @@ def _resume_summary(resume: ResumeData) -> str:
 @retry(
     stop=stop_after_attempt(2),
     wait=wait_exponential(multiplier=1, min=2, max=6),
+    retry=retry_if_not_exception_type(RateLimitError),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )

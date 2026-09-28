@@ -1,8 +1,11 @@
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+import groq
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -11,6 +14,8 @@ from slowapi.util import get_remote_address
 from .config import settings
 from .routes import admin, analyze, auth, health, history, share, tools, tracker
 from .utils.db import close_db, init_db
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -35,6 +40,23 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(groq.RateLimitError)
+async def groq_rate_limit_handler(request: Request, exc: groq.RateLimitError):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Our AI provider's usage limit is temporarily reached. Please try again in a few minutes."},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s", request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Something went wrong on our end. Please try again."},
+    )
 
 # CORS
 app.add_middleware(

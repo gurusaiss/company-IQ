@@ -1,7 +1,7 @@
 import logging
 
-from groq import AsyncGroq
-from tenacity import before_sleep_log, retry, stop_after_attempt, wait_exponential
+from groq import AsyncGroq, RateLimitError
+from tenacity import before_sleep_log, retry, retry_if_not_exception_type, stop_after_attempt, wait_exponential
 
 from ..config import settings
 from ..models.schemas import ResumeData
@@ -10,8 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=2, min=3, max=20),
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=2, max=6),
+    retry=retry_if_not_exception_type(RateLimitError),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
@@ -32,7 +33,7 @@ async def generate_cover_letter(
     job_description: str = "",
     company_context: str = "",
 ) -> str:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
 
     tech_str = ", ".join(resume_data.technologies[:12]) if resume_data.technologies else "various technologies"
     skills_str = ", ".join(resume_data.skills[:10]) if resume_data.skills else ""
