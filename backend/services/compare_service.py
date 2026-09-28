@@ -23,6 +23,8 @@ async def _call(client: AsyncGroq, messages: list, max_tokens: int) -> str:
         messages=messages,
         max_tokens=max_tokens,
         temperature=0.3,
+        tools=[{"type": "browser_search"}],
+        tool_choice="required",
     )
     return resp.choices[0].message.content
 

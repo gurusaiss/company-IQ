@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:8000,*"
     MAX_RESUME_SIZE: int = 10 * 1024 * 1024
-    GROQ_MODEL: str = "compound-beta"
-    GROQ_FALLBACK_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+    GROQ_FALLBACK_MODEL: str = "openai/gpt-oss-20b"
     DATABASE_URL: str = ""
     RATE_LIMIT: str = "60/hour"
 

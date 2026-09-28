@@ -1,6 +1,6 @@
 # CompanyIQ
 
-AI-powered career intelligence for job seekers. Upload your resume + a company name and get a 13-section intelligence report, a tailored cover letter, JD fit analysis, company comparison, salary estimates, interview flashcards, and an application tracker — powered by GROQ's `compound-beta` model with live web search.
+AI-powered career intelligence for job seekers. Upload your resume + a company name and get a 13-section intelligence report, a tailored cover letter, JD fit analysis, company comparison, salary estimates, interview flashcards, and an application tracker — powered by GROQ's `openai/gpt-oss-120b` model with its built-in browser search tool.
 
 ---
 
