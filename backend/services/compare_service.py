@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=2, min=3, max=20),
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=2, max=6),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
@@ -24,7 +24,7 @@ async def _call(client: AsyncGroq, messages: list, max_tokens: int) -> str:
         max_tokens=max_tokens,
         temperature=0.3,
         tools=[{"type": "browser_search"}],
-        tool_choice="required",
+        tool_choice="auto",
     )
     return resp.choices[0].message.content
 
@@ -47,7 +47,7 @@ def _parse_json(raw: str) -> dict:
 
 
 async def compare_companies(company_a: str, company_b: str, resume_data: ResumeData) -> dict:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     tech = ", ".join(resume_data.technologies[:12]) or "general skills"
 
     messages = [
@@ -99,7 +99,7 @@ Return ONLY this JSON:
 
 
 async def estimate_salary(company: str, role: str, location: str, resume_data: ResumeData) -> dict:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     loc = location.strip() or "India"
 
     messages = [

@@ -87,8 +87,8 @@ def _resume_summary(resume: ResumeData) -> str:
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=2, min=3, max=20),
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=2, max=6),
     before_sleep=before_sleep_log(logger, logging.WARNING),
     reraise=True,
 )
@@ -99,13 +99,13 @@ async def _call_groq(client: AsyncGroq, model: str, messages: list, max_tokens: 
         temperature=0.25,
         max_tokens=max_tokens,
         tools=[{"type": "browser_search"}],
-        tool_choice="required",
+        tool_choice="auto",
     )
     return response.choices[0].message.content or ""
 
 
 async def research_and_analyze(company_name: str, resume: ResumeData) -> Dict[str, Any]:
-    client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    client = AsyncGroq(api_key=settings.GROQ_API_KEY, timeout=25.0)
     summary = _resume_summary(resume)
 
     user_message = f"""Research {company_name} thoroughly and analyze the candidate's resume. Return a complete JSON report.
